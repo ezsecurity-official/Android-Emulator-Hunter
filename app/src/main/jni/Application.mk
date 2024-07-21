@@ -2,7 +2,7 @@
 # arm64-v8a for 64-bit ARM
 # x86 for 32-bit Intel
 # x86_64 for 64-bit Intel
-APP_ABI := armeabi-v7a, arm64-v8a, x86, x86_64
+APP_ABI := armeabi-v7a, arm64-v8a
 
 # Minimum Android platform version
 APP_PLATFORM := android-21
