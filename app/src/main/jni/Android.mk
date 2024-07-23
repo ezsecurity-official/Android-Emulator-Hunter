@@ -10,7 +10,8 @@ LOCAL_CPPFLAGS := -std=c++17 -frtti -fexceptions
 # Source Files
 LOCAL_SRC_FILES := src/so_main.cpp \
     src/scan_x86.cpp \
-    src/memory_manager.cpp
+    src/memory_manager.cpp \
+    src/AppInstallerChecker.cpp
 
 # Module Name
 LOCAL_MODULE := ezsecurity

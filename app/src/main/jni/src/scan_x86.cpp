@@ -27,7 +27,7 @@ void print_ELF_architecture(unsigned long long startAddress, size_t length)
         switch (machine)
         {
             case EMachine::X86:
-                LOGI("x86 architecture found in: %s, 0x%llx", library_name.c_str(), startAddress);
+                 LOGI("x86 architecture found in: %s, 0x%llx", library_name.c_str(), startAddress);
                 break;
             case EMachine::ARM:
                 // LOGI("ARM architecture found in: %s, 0x%llx", library_name.c_str(), startAddress);
