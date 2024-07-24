@@ -9,7 +9,7 @@ Detect if the application is running on an emulator
 
 | Emulator    | Supported |
 |-------------|:---------:|
-| BlueStacks  |     ❌     |
+| BlueStacks  |     ✔️     |
 | LDPlayer    |     ❌     |
 | NoxPlayer   |     ❌     |
 | MEMU Play   |     ❌     |
