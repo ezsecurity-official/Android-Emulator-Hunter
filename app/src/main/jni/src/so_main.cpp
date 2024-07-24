@@ -4,11 +4,13 @@
 #include <thread>
 #include <jni.h>
 
+#define PACKAGE_NAME "com.ezsecurity.emulator.hunter"
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_ezsecurity_emulator_hunter_MainActivity_checkAppInstaller(JNIEnv *env, jobject thiz)
 {
-    AppInstallerChecker checker(env, thiz, "com.ezsecurity.emulator.hunter");
+    AppInstallerChecker checker(env, thiz, PACKAGE_NAME);
     std::string installer = checker.getInstallerPackageName();
 
     if (!installer.empty())

@@ -12,22 +12,20 @@
 
 #include <src/Includes/Logger.h>
 #include <src/vendors/ELFPP.hpp>
-#include <src/memory_manager.h>
+#include <src/vendors/MemoryMap/MemoryMap.h>
 
 using namespace ELFPP;
 
-void print_ELF_architecture(unsigned long long startAddress, size_t length)
+void print_ELF_architecture(unsigned long long startAddress, size_t length, const std::string& libraryName)
 {
     try {
         std::unique_ptr<IELF> elf = ELFPP::FromBuffer(reinterpret_cast<void*>(startAddress));
-
         EMachine machine = elf->GetTargetMachine();
-        std::string library_name = MemoryManager::getLibraryNameByAddr(startAddress);
 
         switch (machine)
         {
             case EMachine::X86:
-                 LOGI("x86 architecture found in: %s, 0x%llx", library_name.c_str(), startAddress);
+                 LOGI("x86 architecture found in: %s, 0x%llx", libraryName.c_str(), startAddress);
                 break;
             case EMachine::ARM:
                 // LOGI("ARM architecture found in: %s, 0x%llx", library_name.c_str(), startAddress);
@@ -43,12 +41,16 @@ void print_ELF_architecture(unsigned long long startAddress, size_t length)
 
 void analyze_libraries()
 {
-    std::vector<MemoryRegion> library_regions;
-    MemoryManager::getLibraryMemoryRegions(library_regions);
+    std::unique_ptr<MemoryMap> memoryMap = std::make_unique<MemoryMap>();
+    std::vector<MemoryMap> libraries = memoryMap->MemoryMap::getSharedLibraries();
 
-    for (const MemoryRegion& region : library_regions)
+    for (const MemoryMap& lib : libraries)
     {
-        print_ELF_architecture(region.startAddress, region.length);
+        // Check if the memory map is valid
+        if (lib.isValid())
+        {
+            print_ELF_architecture(lib.startAddress, lib.length, lib.filePath);
+        }
     }
 }
 
