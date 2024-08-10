@@ -16,6 +16,7 @@ LOCAL_CPPFLAGS := -std=c++17 -frtti -fexceptions
 LOCAL_SRC_FILES := src/so_main.cpp \
     src/vendors/MemoryMap/MemoryMap.cpp \
     src/vendors/LuaUtils/LuaUtils.cpp \
+    src/vendors/JNILogs/JNILogs.cpp \
     src/scan_x86.cpp \
     src/AppInstallerChecker.cpp
 

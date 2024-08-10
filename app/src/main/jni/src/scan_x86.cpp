@@ -2,18 +2,6 @@
 // Created by MasterGames on 21/07/2024.
 //
 #include "scan_x86.h"
-
-#include <string>
-#include <vector>
-#include <memory>
-#include <cstdio>
-#include <cstring>
-#include <iostream>
-
-#include <src/Includes/Logger.h>
-#include <src/vendors/ELFPP.hpp>
-#include <src/vendors/MemoryMap/MemoryMap.h>
-#include "src/vendors/LuaUtils/LuaUtils.h"
 #include "src/lua_scripts/scan_x86_script.h"
 
 using namespace ELFPP;
@@ -28,6 +16,7 @@ void print_ELF_architecture(unsigned long long startAddress, size_t length, cons
         {
             case EMachine::X86:
                  LOGI("x86 architecture found in: %s, 0x%llx", libraryName.c_str(), startAddress);
+                 JMethod::addLogEntry("x86 architecture found: local(" + libraryName + "), address(0x" + std::to_string(startAddress) + ")", JMethod::LIB_DETECTED);
                 break;
             case EMachine::ARM:
                 // LOGI("ARM architecture found in: %s, 0x%llx", library_name.c_str(), startAddress);
@@ -61,9 +50,12 @@ void analyze_lua_libraries()
     run_lua_script(scan_x86_script);
 }
 
-void scan_x86_thread()
+void scan_x86()
 {
-    LOGI("thread [scan_x86] loaded");
+    LOGI("[scan_x86] Starting x86 scan");
+
     analyze_libraries();
     analyze_lua_libraries();
+
+    LOGI("[scan_x86] Finished x86 scan");
 }

@@ -3,35 +3,14 @@
 
 #include "src/Includes/Logger.h"
 #include "src/Includes/FileSystemUtils.h"
-
+#include "src/vendors/JNILogs/JNILogs.h"
 #include "EmulatorMappings.h"
 #include "scan_x86.h"
 #include "AppInstallerChecker.h"
 
 #define PACKAGE_NAME "com.ezsecurity.emulator.hunter"
 
-void checkProfilesDirectories()
-{
-    std::string profilesDirectory = "data/misc/profiles/cur/0/";
-    if (profilesDirectory.empty())
-        return;
-
-    for (const auto& dir : blueStacksTargetPackages)
-    {
-        if (containsSubdirectory(profilesDirectory, dir))
-        {
-            LOGI("The directory contains the BlueStacks target directory: %s", dir.c_str());
-        }
-        else
-        {
-            LOGE("The directory does not contain the BlueStacks target directory: %s", dir.c_str());
-        }
-    }
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_ezsecurity_emulator_hunter_MainActivity_checkAppInstaller(JNIEnv *env, jobject thiz)
+void checkAppInstaller(JNIEnv *env, jobject thiz)
 {
     AppInstallerChecker checker(env, thiz, PACKAGE_NAME);
     std::string installer = checker.getInstallerPackageName();
@@ -39,20 +18,37 @@ Java_com_ezsecurity_emulator_hunter_MainActivity_checkAppInstaller(JNIEnv *env, 
     if (installer.empty())
     {
         LOGE("Failed to get installer package name: %s", checker.getErrorMessage().c_str());
+        JMethod::addLogEntry("Failed to get installer package name : " + checker.getErrorMessage(), JMethod::ERROR);
         return;
     }
 
-    LOGI("The app was installed by: %s", installer.c_str());
+    if (!installer.empty())
+    {
+        LOGI("The app was installed by: %s", installer.c_str());
+        JMethod::addLogEntry("The app was installed by: " + installer, JMethod::APK_DETECTED);
+    }
 
     if (installer.find("com.bluestacks.BstCommandProcessor") == 0)
     {
         LOGI("Detected BlueStacks installer: %s", installer.c_str());
+        JMethod::addLogEntry("Detected BlueStacks installer: " + installer, JMethod::APK_DETECTED);
+        return;
     }
 }
 
-__attribute__((constructor))
-void lib_main()
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_ezsecurity_emulator_hunter_MainActivity_initiateEmulatorScan(JNIEnv *env, jobject thiz)
 {
-    std::thread scan_x86(scan_x86_thread);
-    scan_x86.detach();
+    JMethod jMethod = JMethod(env, thiz);
+
+    checkAppInstaller(env, thiz);
+    scan_x86();
+
+    for (const LogEntry& logEntry : logEntries)
+    {
+        jMethod.displayLogMessage(logEntry.message, logEntry.level);
+    }
+
+    logEntries.clear();
 }
