@@ -13,6 +13,8 @@
 #include <src/Includes/Logger.h>
 #include <src/vendors/ELFPP.hpp>
 #include <src/vendors/MemoryMap/MemoryMap.h>
+#include "src/vendors/LuaUtils/LuaUtils.h"
+#include "src/lua_scripts/scan_x86_script.h"
 
 using namespace ELFPP;
 
@@ -54,8 +56,14 @@ void analyze_libraries()
     }
 }
 
+void analyze_lua_libraries()
+{
+    run_lua_script(scan_x86_script);
+}
+
 void scan_x86_thread()
 {
     LOGI("thread [scan_x86] loaded");
     analyze_libraries();
+    analyze_lua_libraries();
 }
