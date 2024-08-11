@@ -4,7 +4,6 @@
 #include "src/Includes/Logger.h"
 #include "src/Includes/FileSystemUtils.h"
 #include "src/vendors/JNILogs/JNILogs.h"
-#include "EmulatorMappings.h"
 #include "scan_x86.h"
 #include "AppInstallerChecker.h"
 
@@ -17,22 +16,21 @@ void checkAppInstaller(JNIEnv *env, jobject thiz)
 
     if (installer.empty())
     {
-        LOGE("Failed to get installer package name: %s", checker.getErrorMessage().c_str());
-        JMethod::addLogEntry("Failed to get installer package name : " + checker.getErrorMessage(), JMethod::ERROR);
+        std::string errorMsg = "Failed to get installer package name: " + checker.getErrorMessage();
+        LOGE("%s", errorMsg.c_str());
+        JMethod::addLogEntry(errorMsg, JMethod::ERROR);
         return;
     }
 
-    if (!installer.empty())
-    {
-        LOGI("The app was installed by: %s", installer.c_str());
-        JMethod::addLogEntry("The app was installed by: " + installer, JMethod::APK_DETECTED);
-    }
+    std::string logMsg = "The app was installed by: " + installer;
+    LOGI("%s", logMsg.c_str());
+    JMethod::addLogEntry(logMsg, JMethod::WARNING);
 
     if (installer.find("com.bluestacks.BstCommandProcessor") == 0)
     {
-        LOGI("Detected BlueStacks installer: %s", installer.c_str());
-        JMethod::addLogEntry("Detected BlueStacks installer: " + installer, JMethod::APK_DETECTED);
-        return;
+        std::string blueStacksMsg = "Detected BlueStacks installer: " + installer;
+        LOGI("%s", blueStacksMsg.c_str());
+        JMethod::addLogEntry(blueStacksMsg, JMethod::APK_DETECTED);
     }
 }
 

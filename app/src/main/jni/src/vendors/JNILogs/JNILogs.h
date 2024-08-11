@@ -29,7 +29,7 @@ private:
 public:
     // Log levels
     static const int APK_DETECTED = 0;
-    static const int LIB_DETECTED = 1;
+    static const int WARNING = 1;
     static const int ERROR = 2;
 
     // Static method to add a log entry to the list

@@ -1,46 +1,94 @@
-//
-// Created by MasterGames on 21/07/2024.
-//
 #include "scan_x86.h"
 #include "src/lua_scripts/scan_x86_script.h"
+#include "src/EmulatorMappings.h"
 
 using namespace ELFPP;
 
-void print_ELF_architecture(unsigned long long startAddress, size_t length, const std::string& libraryName)
+std::string convertAddressToHex(unsigned long long address)
+{
+    std::stringstream ss;
+    ss << "0x" << std::hex << address;
+    return ss.str();
+}
+
+void detectELFArchitecture(unsigned long long startAddress, const std::string& libraryName)
 {
     try {
         std::unique_ptr<IELF> elf = ELFPP::FromBuffer(reinterpret_cast<void*>(startAddress));
         EMachine machine = elf->GetTargetMachine();
 
-        switch (machine)
+        if (machine == EMachine::X86)
         {
-            case EMachine::X86:
-                 LOGI("x86 architecture found in: %s, 0x%llx", libraryName.c_str(), startAddress);
-                 JMethod::addLogEntry("x86 architecture found: local(" + libraryName + "), address(0x" + std::to_string(startAddress) + ")", JMethod::LIB_DETECTED);
-                break;
-            case EMachine::ARM:
-                // LOGI("ARM architecture found in: %s, 0x%llx", library_name.c_str(), startAddress);
-                break;
-            default:
-                // LOGI("Unknown or unsupported architecture found in: %s, 0x%llx", library_name.c_str(), startAddress);
-                break;
+            std::string logMessage = "x86 architecture found: local(" + libraryName + "), address(" + convertAddressToHex(startAddress) + ")";
+            LOGI("%s", logMessage.c_str());
+            JMethod::addLogEntry(logMessage, JMethod::WARNING);
         }
     } catch (const std::exception& e) {
         LOGI("Error: %s", e.what());
+        JMethod::addLogEntry("Error: " + std::string(e.what()), JMethod::ERROR);
     }
+}
+
+bool checkForSpecificLibraries(const std::vector<MemoryMap>& libraries, const std::vector<const char*>& targetLibraries)
+{
+    std::unordered_map<std::string, bool> libraryFound;
+
+    for (const auto& targetLib : targetLibraries)
+    {
+        libraryFound[targetLib] = false;
+    }
+
+    for (const auto& lib : libraries)
+    {
+        if (lib.isValid())
+        {
+            for (const auto& targetLib : targetLibraries)
+            {
+                if (lib.filePath.find(targetLib) != std::string::npos)
+                {
+                    if (!libraryFound[targetLib])
+                    {
+                        std::string logMessage = "Emulator library detected: local(" + lib.filePath + ")";
+                        LOGI("%s", logMessage.c_str());
+                        JMethod::addLogEntry(logMessage, JMethod::APK_DETECTED);
+                        libraryFound[targetLib] = true;
+                    }
+                }
+            }
+        }
+    }
+
+    bool allFound = true;
+    for (const auto& entry : libraryFound)
+    {
+        if (!entry.second)
+        {
+            std::string logMessage = "Emulator library not found: " + entry.first;
+            LOGI("%s", logMessage.c_str());
+            JMethod::addLogEntry(logMessage, JMethod::ERROR);
+            allFound = false;
+        }
+    }
+
+    return allFound;
 }
 
 void analyze_libraries()
 {
     std::unique_ptr<MemoryMap> memoryMap = std::make_unique<MemoryMap>();
-    std::vector<MemoryMap> libraries = memoryMap->MemoryMap::getSharedLibraries();
+    std::vector<MemoryMap> libraries = memoryMap->getSharedLibraries();
 
-    for (const MemoryMap& lib : libraries)
+    // Check and log specific emulator libraries
+    checkForSpecificLibraries(libraries, emulatorLibs);
+
+    // Analyze the remaining libraries
+    for (const auto& lib : libraries)
     {
-        // Check if the memory map is valid
-        if (lib.isValid())
+        if (lib.isValid() && std::none_of(emulatorLibs.begin(), emulatorLibs.end(), [&](const char* excludeLib) {
+            return lib.filePath.find(excludeLib) != std::string::npos;
+        }))
         {
-            print_ELF_architecture(lib.startAddress, lib.length, lib.filePath);
+            detectELFArchitecture(lib.startAddress, lib.filePath);
         }
     }
 }

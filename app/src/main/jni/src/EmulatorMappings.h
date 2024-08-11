@@ -6,6 +6,12 @@
 #define ANDROID_EMULATOR_HUNTER_EMULATORMAPPINGS_H
 #include <string>
 #include <vector>
+#include <iostream>
+
+std::vector<const char*> emulatorLibs = {
+    "libhoudini.so",
+    "libGLES_bst.so" // BlueStacks
+};
 
 std::vector<std::string> blueStacksTargetPackages = {
     "com.bluestacks.BstCommandProcessor",

@@ -10,6 +10,8 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 
 #include <src/Includes/Logger.h>
 #include <src/vendors/ELFPP.hpp>
